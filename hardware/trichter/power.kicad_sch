@@ -958,8 +958,8 @@
     (uuid ffbbbd20-7cfc-4acd-bf30-62c724d446e5)
   )
 
-  (text_box "Resistor value depends on which LED will be used"
-    (at 162.56 76.2 0) (size 20.32 7.62)
+  (text_box "See D1 for resistor calculation"
+    (at 161.29 85.09 0) (size 12.7 7.62)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)) (justify left top))
@@ -1627,7 +1627,7 @@
     (property "Reference" "R4" (at 153.67 87.63 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "10k" (at 153.67 90.17 0)
+    (property "Value" "390" (at 153.67 90.17 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder" (at 149.352 88.9 90)
