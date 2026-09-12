@@ -3,12 +3,15 @@
 #include "stdio.h"
 
 #include "flow_sensor/flow_sensor.h"
+#include "sh1106/sh1106.h"
 
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
 
 flow_sensor_state_t flow_sensor;
+
+sh1106_t sh1106;
 
 static void system_clock_init(void)
 {
@@ -144,10 +147,15 @@ int main(void)
 
 	flow_sensor_init(&flow_sensor);
 
+	int ret = sh1106_init(&sh1106, &hi2c1, 0x3c);
+
 	uint32_t t1 = HAL_GetTick();
 	uint32_t t2 = HAL_GetTick();
 
 	char msg[64];
+
+	size_t len = snprintf(msg, 64, "display init returned %d\n", ret);
+	HAL_UART_Transmit(&huart1, (uint8_t *)msg, len, 100);
 
 	while (1)
 	{
