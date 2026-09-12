@@ -5,3 +5,4 @@ trichter-backups/
 **/Debug/
 **/.settings/
 
+*.launch

@@ -1,0 +1,35 @@
+#ifndef __MAIN_H
+#define __MAIN_H
+
+#include "stm32c0xx_hal.h"
+void Error_Handler(void);
+
+#define PIN_IO0 GPIO_PIN_0
+#define PORT_IO0 GPIOA
+#define PIN_FLOW_PULSE GPIO_PIN_1
+#define PORT_FLOW_PULSE GPIOA
+#define FLOW_PULSE_EXTI_IRQn EXTI0_1_IRQn
+#define PIN_BTN_CONFIRM GPIO_PIN_2
+#define PORT_BTN_CONFIRM GPIOA
+#define PIN_ENCODER_PUSH GPIO_PIN_3
+#define PORT_ENCODER_PUSH GPIOA
+#define PIN_ENCODER_A GPIO_PIN_4
+#define PORT_ENCODER_A GPIOA
+#define ENCODER_A_EXTI_IRQn EXTI4_15_IRQn
+#define PIN_ENCODER_B GPIO_PIN_5
+#define PORT_ENCODER_B GPIOA
+#define ENCODER_B_EXTI_IRQn EXTI4_15_IRQn
+#define PIN_BTN_BACK GPIO_PIN_0
+#define PORT_BTN_BACK GPIOB
+#define PIN_IO5 GPIO_PIN_1
+#define PORT_IO5 GPIOB
+#define PIN_IO4 GPIO_PIN_2
+#define PORT_IO4 GPIOB
+#define PIN_IO3 GPIO_PIN_3
+#define PORT_IO3 GPIOB
+#define PIN_IO2 GPIO_PIN_4
+#define PORT_IO2 GPIOB
+#define PIN_IO1 GPIO_PIN_5
+#define PORT_IO1 GPIOB
+
+#endif
