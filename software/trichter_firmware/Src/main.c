@@ -1,9 +1,13 @@
 #include "main.h"
 
 #include "stdio.h"
+#include "string.h"
 
 #include "flow_sensor/flow_sensor.h"
 #include "sh1106/sh1106.h"
+
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
 
 I2C_HandleTypeDef hi2c1;
 
@@ -147,16 +151,18 @@ int main(void)
 
 	flow_sensor_init(&flow_sensor);
 
-	int ret = sh1106_init(&sh1106, &hi2c1, 0x3c);
+	sh1106_init(&sh1106, &hi2c1, 0x3c, 128, 64, 2);
+	sh1106_enable(&sh1106, true);
 
-	uint32_t t1 = HAL_GetTick();
-	uint32_t t2 = HAL_GetTick();
+	uint8_t display_data[8*DISPLAY_WIDTH];
+	memset(display_data, 0x00, 8*DISPLAY_WIDTH);
+
+	sh1106_send_display_data(&sh1106, display_data);
 
 	char msg[64];
 
-	size_t len = snprintf(msg, 64, "display init returned %d\n", ret);
-	HAL_UART_Transmit(&huart1, (uint8_t *)msg, len, 100);
-
+	uint32_t t1 = HAL_GetTick();
+	uint32_t t2 = HAL_GetTick();
 	while (1)
 	{
 		t2 = HAL_GetTick();
@@ -168,6 +174,8 @@ int main(void)
 			size_t len = snprintf(msg, 64, "Volume: %d uL\nIs flowing? %d\n", flow_sensor_get_volume_ul(&flow_sensor), flow_sensor.is_flowing);
 			HAL_UART_Transmit(&huart1, (uint8_t *)msg, len, 100);
 			t1 = t2;
+
+			sh1106_send_display_data(&sh1106, display_data);
 		}
 	}
 }
