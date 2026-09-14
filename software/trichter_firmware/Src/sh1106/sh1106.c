@@ -8,17 +8,11 @@
 #include "sh1106.h"
 #include "sh1106_commands.h"
 
+#include "string.h"
+
 static int sh1106_send_command(sh1106_t *sh1106, uint8_t command)
 {
 	uint8_t i2c_buffer[2]= {SH1106_MSG_TYPE_COMMAND, command};
-	int success = HAL_I2C_Master_Transmit(sh1106->i2c_handle, sh1106->i2c_address, i2c_buffer, 2, 1000);
-
-	return success;
-}
-
-static int sh1106_send_data(sh1106_t *sh1106, uint8_t data)
-{
-	uint8_t i2c_buffer[2]= {SH1106_MSG_TYPE_DATA, data};
 	int success = HAL_I2C_Master_Transmit(sh1106->i2c_handle, sh1106->i2c_address, i2c_buffer, 2, 1000);
 
 	return success;
@@ -56,13 +50,15 @@ int sh1106_send_display_data(sh1106_t *sh1106, uint8_t *data)
 		sh1106_send_command(sh1106, SH1106_CMD_SET_LOWER_COLUMN_ADDR | (sh1106->start_column & 0x0f));
 		sh1106_send_command(sh1106, SH1106_CMD_SET_HIGHER_COLUMN_ADDR | ((sh1106->start_column & 0xf0) >> 4));
 
-		for (uint_fast8_t column_idx = 0; column_idx < sh1106->display_width; column_idx = column_idx + 1)
+		/* Build message with data of the current page. */
+		uint8_t msg[1 + sh1106->display_width];
+		msg[0] = SH1106_MSG_TYPE_DATA;
+		memcpy(&msg[1], &data[page*sh1106->display_width], sh1106->display_width);
+		/* Send data to the display. */
+		success = HAL_I2C_Master_Transmit(sh1106->i2c_handle, sh1106->i2c_address, msg, sh1106->display_width + 1, 1000);
+		if (success != SUCCESS)
 		{
-			success = sh1106_send_data(sh1106, data[page*sh1106->display_width + column_idx]);
-			if (success != SUCCESS)
-			{
-				return success;
-			}
+			return success;
 		}
 	}
 

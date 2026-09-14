@@ -156,6 +156,7 @@ int main(void)
 
 	uint8_t display_data[8*DISPLAY_WIDTH];
 	memset(display_data, 0x00, 8*DISPLAY_WIDTH);
+	sh1106_data_set_pixel(&sh1106, display_data, 10, 10, true);
 
 	sh1106_send_display_data(&sh1106, display_data);
 
@@ -174,8 +175,6 @@ int main(void)
 			size_t len = snprintf(msg, 64, "Volume: %d uL\nIs flowing? %d\n", flow_sensor_get_volume_ul(&flow_sensor), flow_sensor.is_flowing);
 			HAL_UART_Transmit(&huart1, (uint8_t *)msg, len, 100);
 			t1 = t2;
-
-			sh1106_send_display_data(&sh1106, display_data);
 		}
 	}
 }
