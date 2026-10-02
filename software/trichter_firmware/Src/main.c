@@ -3,8 +3,8 @@
 #include "stdio.h"
 #include "string.h"
 
-#include "flow_sensor/flow_sensor.h"
-#include "sh1106/sh1106.h"
+#include "display.h"
+#include "flow_sensor.h"
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
@@ -15,12 +15,12 @@ UART_HandleTypeDef huart1;
 
 flow_sensor_state_t flow_sensor;
 
-sh1106_t sh1106;
-
 static void system_clock_init(void)
 {
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct =
+	{ 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct =
+	{ 0 };
 
 	__HAL_FLASH_SET_LATENCY(FLASH_LATENCY_0);
 
@@ -105,7 +105,8 @@ static void uart_init(void)
 
 static void gpio_init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitTypeDef GPIO_InitStruct =
+	{ 0 };
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -149,18 +150,12 @@ int main(void)
 	uart_init();
 	gpio_init();
 
-	flow_sensor_init(&flow_sensor);
-
-	sh1106_init(&sh1106, &hi2c1, 0x3c, 128, 64, 2);
-	sh1106_enable(&sh1106, true);
-
-	uint8_t display_data[8*DISPLAY_WIDTH];
-	memset(display_data, 0x00, 8*DISPLAY_WIDTH);
-	sh1106_data_set_pixel(&sh1106, display_data, 10, 10, true);
-
-	sh1106_send_display_data(&sh1106, display_data);
-
 	char msg[64];
+	size_t len;
+
+	display_init(&hi2c1, 0x3c);
+
+	flow_sensor_init(&flow_sensor);
 
 	uint32_t t1 = HAL_GetTick();
 	uint32_t t2 = HAL_GetTick();
@@ -169,11 +164,16 @@ int main(void)
 		t2 = HAL_GetTick();
 
 		flow_sensor_update(&flow_sensor);
+		display_set_is_flowing(flow_sensor.is_flowing);
+		display_set_volume(flow_sensor_get_volume_ul(&flow_sensor));
 
-		if (t2 - t1 >= 1000)
+		if (t2 - t1 >= 100)
 		{
-			size_t len = snprintf(msg, 64, "Volume: %d uL\nIs flowing? %d\n", flow_sensor_get_volume_ul(&flow_sensor), flow_sensor.is_flowing);
-			HAL_UART_Transmit(&huart1, (uint8_t *)msg, len, 100);
+			len = snprintf(msg, 64, "Volume: %d uL\nIs flowing? %d\n", flow_sensor_get_volume_ul(&flow_sensor), flow_sensor.is_flowing);
+			HAL_UART_Transmit(&huart1, (uint8_t*) msg, len, 100);
+
+			display_draw_main_view();
+
 			t1 = t2;
 		}
 	}
@@ -182,5 +182,7 @@ int main(void)
 void Error_Handler(void)
 {
 	__disable_irq();
-	while (1) {}
+	while (1)
+	{
+	}
 }

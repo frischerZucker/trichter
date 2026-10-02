@@ -9,7 +9,7 @@
 
 #include "stdint.h"
 
-#include "stm32c0xx_hal.h"
+#include "main.h"
 
 #define FLOW_SENSOR_UL_PER_PULSE 2525
 #define FLOW_SENSOR_UPDATE_PERIOD_MS 100
@@ -40,7 +40,7 @@ void flow_sensor_update(flow_sensor_state_t *sensor)
 		}
 		else
 		{
-			sensor-> is_flowing = false;
+			sensor->is_flowing = false;
 		}
 
 		last_update_time = current_update_time;

@@ -2,7 +2,10 @@ fp-info-cache
 trichter-backups/
 ~*
 
+**/Release/
 **/Debug/
 **/.settings/
+
+**/u8g2/
 
 *.launch
