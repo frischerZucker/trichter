@@ -34,7 +34,7 @@ static void system_clock_init(void)
 
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
 	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV4;
+	RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
 	{
@@ -56,7 +56,7 @@ static void system_clock_init(void)
 static void i2c_init(void)
 {
 	hi2c1.Instance = I2C1;
-	hi2c1.Init.Timing = 0x00402D41;
+	hi2c1.Init.Timing = 0x0090194B;
 	hi2c1.Init.OwnAddress1 = 0;
 	hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
 	hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
