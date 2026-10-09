@@ -18,7 +18,6 @@ void Error_Handler(void);
 #define ENCODER_A_EXTI_IRQn EXTI4_15_IRQn
 #define PIN_ENCODER_B GPIO_PIN_5
 #define PORT_ENCODER_B GPIOA
-#define ENCODER_B_EXTI_IRQn EXTI4_15_IRQn
 #define PIN_BTN_BACK GPIO_PIN_0
 #define PORT_BTN_BACK GPIOB
 #define PIN_IO5 GPIO_PIN_1

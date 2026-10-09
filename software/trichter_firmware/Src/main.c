@@ -9,6 +9,8 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
+#define ENCODER_DEBOUNCE_TIME_MS 50
+
 static I2C_HandleTypeDef hi2c1;
 
 static UART_HandleTypeDef huart1;
@@ -17,11 +19,14 @@ static flow_sensor_state_t flow_sensor;
 
 static bool btn_back = false;
 static bool last_btn_back = false;
-
 static bool btn_confirm = false;
 static bool last_btn_confirm = false;
+static bool btn_push = false;
+static bool last_btn_push = false;
 
 static bool display_dirty = true;
+
+static uint32_t encoder_last_tick = 0;
 
 static void system_clock_init(void)
 {
@@ -119,12 +124,12 @@ static void gpio_init(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-	GPIO_InitStruct.Pin = PIN_IO0 | PIN_BTN_CONFIRM | PIN_ENCODER_PUSH;
+	GPIO_InitStruct.Pin = PIN_IO0 | PIN_BTN_CONFIRM | PIN_ENCODER_PUSH | PIN_ENCODER_B;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(PORT_IO0, &GPIO_InitStruct);
 
-	GPIO_InitStruct.Pin = PIN_FLOW_PULSE | PIN_ENCODER_A | PIN_ENCODER_B;
+	GPIO_InitStruct.Pin = PIN_FLOW_PULSE | PIN_ENCODER_A;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(PORT_FLOW_PULSE, &GPIO_InitStruct);
@@ -158,13 +163,51 @@ static void process_user_input(void)
 		display_dirty = true;
 	}
 	last_btn_confirm = btn_confirm;
+
+	/*
+	 * Pushing the encoder button sometimes triggers the flow sensor, glitches the display and/or crashes the device...
+	 * Most of the time it does nothing. -> Is it really clicking? In a review the buttons casing was too large.
+	 * Right now idk why, so just dont push the button i guess. ¯\_(ツ)_/¯
+	 */
+//	btn_push = !HAL_GPIO_ReadPin(PORT_ENCODER_PUSH, PIN_ENCODER_PUSH);
+//	if (btn_push && last_btn_push == false)
+//	{
+//		display_increment_counter();
+//		display_dirty = true;
+//	}
+//	last_btn_push = btn_push;
 }
 
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t gpio_pin)
 {
-	if (gpio_pin == PIN_FLOW_PULSE)
-	{
-		flow_sensor_interrupt(&flow_sensor);
+	switch (gpio_pin) {
+		case PIN_FLOW_PULSE:
+			flow_sensor_interrupt(&flow_sensor);
+			break;
+
+		case PIN_ENCODER_A:
+			uint32_t now = HAL_GetTick();
+			if (now - encoder_last_tick < ENCODER_DEBOUNCE_TIME_MS)
+			{
+				break;
+			}
+			encoder_last_tick = now;
+
+			/* counter-clockwise rotation */
+			if (HAL_GPIO_ReadPin(PORT_ENCODER_B, PIN_ENCODER_B))
+			{
+				display_increment_counter();
+			}
+			/* clockwise rotation */
+			else
+			{
+				display_decrement_counter();
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
