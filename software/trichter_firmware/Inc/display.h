@@ -18,5 +18,6 @@ void display_draw_main_view(void);
 
 void display_set_volume(size_t volume_ul);
 void display_set_is_flowing(bool is_flowing);
+void display_increment_counter(void);
 
 #endif /* DISPLAY_H_ */

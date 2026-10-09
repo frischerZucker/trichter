@@ -25,7 +25,7 @@ void flow_sensor_init(flow_sensor_state_t *sensor)
 }
 
 /* Call this in the main loop. */
-void flow_sensor_update(flow_sensor_state_t *sensor)
+int flow_sensor_update(flow_sensor_state_t *sensor)
 {
 	uint32_t current_update_time = HAL_GetTick();
 
@@ -44,7 +44,11 @@ void flow_sensor_update(flow_sensor_state_t *sensor)
 		}
 
 		last_update_time = current_update_time;
+
+		return 1;
 	}
+
+	return 0;
 }
 
 /* Call this in the external interrupt. */

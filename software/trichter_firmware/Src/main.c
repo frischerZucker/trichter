@@ -9,11 +9,19 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
-I2C_HandleTypeDef hi2c1;
+static I2C_HandleTypeDef hi2c1;
 
-UART_HandleTypeDef huart1;
+static UART_HandleTypeDef huart1;
 
-flow_sensor_state_t flow_sensor;
+static flow_sensor_state_t flow_sensor;
+
+static bool btn_back = false;
+static bool last_btn_back = false;
+
+static bool btn_confirm = false;
+static bool last_btn_confirm = false;
+
+static bool display_dirty = true;
 
 static void system_clock_init(void)
 {
@@ -133,6 +141,25 @@ static void gpio_init(void)
 	HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }
 
+static void process_user_input(void)
+{
+	btn_back = !HAL_GPIO_ReadPin(PORT_BTN_BACK, PIN_BTN_BACK);
+	if (btn_back && last_btn_back == false)
+	{
+		display_increment_counter();
+		display_dirty = true;
+	}
+	last_btn_back = btn_back;
+
+	btn_confirm = !HAL_GPIO_ReadPin(PORT_BTN_CONFIRM, PIN_BTN_CONFIRM);
+	if (btn_confirm && last_btn_confirm == false)
+	{
+		display_increment_counter();
+		display_dirty = true;
+	}
+	last_btn_confirm = btn_confirm;
+}
+
 void HAL_GPIO_EXTI_Rising_Callback(uint16_t gpio_pin)
 {
 	if (gpio_pin == PIN_FLOW_PULSE)
@@ -150,31 +177,25 @@ int main(void)
 	uart_init();
 	gpio_init();
 
-	char msg[64];
-	size_t len;
-
 	display_init(&hi2c1, 0x3c);
 
 	flow_sensor_init(&flow_sensor);
 
-	uint32_t t1 = HAL_GetTick();
-	uint32_t t2 = HAL_GetTick();
 	while (1)
 	{
-		t2 = HAL_GetTick();
+		process_user_input();
 
-		flow_sensor_update(&flow_sensor);
-		display_set_is_flowing(flow_sensor.is_flowing);
-		display_set_volume(flow_sensor_get_volume_ul(&flow_sensor));
-
-		if (t2 - t1 >= 100)
+		if (flow_sensor_update(&flow_sensor))
 		{
-			len = snprintf(msg, 64, "Volume: %d uL\nIs flowing? %d\n", flow_sensor_get_volume_ul(&flow_sensor), flow_sensor.is_flowing);
-			HAL_UART_Transmit(&huart1, (uint8_t*) msg, len, 100);
+			display_set_is_flowing(flow_sensor.is_flowing);
+			display_set_volume(flow_sensor_get_volume_ul(&flow_sensor));
+			display_dirty = true;
+		}
 
+		if (display_dirty)
+		{
 			display_draw_main_view();
-
-			t1 = t2;
+			display_dirty = false;
 		}
 	}
 }

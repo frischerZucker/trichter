@@ -23,7 +23,7 @@ typedef struct flow_sensor_state
 void flow_sensor_init(flow_sensor_state_t *sensor);
 
 /* Call this in the main loop. */
-void flow_sensor_update(flow_sensor_state_t *sensor);
+int flow_sensor_update(flow_sensor_state_t *sensor);
 /* Call this in the external interrupt. */
 void flow_sensor_interrupt(flow_sensor_state_t *sensor);
 
