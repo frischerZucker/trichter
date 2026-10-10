@@ -5,9 +5,8 @@
 
 #include "display.h"
 #include "flow_sensor.h"
-
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 64
+#include "trichter_state.h"
+#include "user_profile.h"
 
 #define ENCODER_DEBOUNCE_TIME_MS 50
 
@@ -16,6 +15,10 @@ static I2C_HandleTypeDef hi2c1;
 static UART_HandleTypeDef huart1;
 
 static flow_sensor_state_t flow_sensor;
+
+static user_profile_t default_profile;
+
+static states_t state = STATE_IDLE;
 
 static bool btn_back = false;
 static bool last_btn_back = false;
@@ -151,15 +154,33 @@ static void process_user_input(void)
 	btn_back = !HAL_GPIO_ReadPin(PORT_BTN_BACK, PIN_BTN_BACK);
 	if (btn_back && last_btn_back == false)
 	{
-		display_increment_counter();
-		display_dirty = true;
+
 	}
 	last_btn_back = btn_back;
 
 	btn_confirm = !HAL_GPIO_ReadPin(PORT_BTN_CONFIRM, PIN_BTN_CONFIRM);
 	if (btn_confirm && last_btn_confirm == false)
 	{
-		display_increment_counter();
+		switch (state) {
+			case STATE_IDLE:
+				default_profile.volume_ul = 0;
+				default_profile.attempt_counter = default_profile.attempt_counter + 1;
+				flow_sensor_reset(&flow_sensor);
+
+				state = STATE_RUNNING;
+				display_set_view(VIEW_RUNNING);
+				break;
+
+			case STATE_RUNNING:
+				default_profile.all_time_volume_ul = default_profile.all_time_volume_ul + default_profile.volume_ul;
+
+				state = STATE_IDLE;
+				display_set_view(VIEW_IDLE);
+				break;
+
+			default:
+				break;
+		}
 		display_dirty = true;
 	}
 	last_btn_confirm = btn_confirm;
@@ -196,12 +217,12 @@ void HAL_GPIO_EXTI_Rising_Callback(uint16_t gpio_pin)
 			/* counter-clockwise rotation */
 			if (HAL_GPIO_ReadPin(PORT_ENCODER_B, PIN_ENCODER_B))
 			{
-				display_increment_counter();
+
 			}
 			/* clockwise rotation */
 			else
 			{
-				display_decrement_counter();
+
 			}
 
 			break;
@@ -224,20 +245,41 @@ int main(void)
 
 	flow_sensor_init(&flow_sensor);
 
+	user_profile_init(&default_profile, "Joe Biden");
+
+	display_set_user_profile(&default_profile);
+	display_set_view(VIEW_IDLE);
+
 	while (1)
 	{
 		process_user_input();
 
-		if (flow_sensor_update(&flow_sensor))
-		{
-			display_set_is_flowing(flow_sensor.is_flowing);
-			display_set_volume(flow_sensor_get_volume_ul(&flow_sensor));
-			display_dirty = true;
+		switch (state) {
+			case STATE_IDLE:
+				break;
+
+			case STATE_ADD_PROFILE:
+				break;
+
+			case STATE_LEADERBOARD:
+				break;
+
+			case STATE_RUNNING:
+				if (flow_sensor_update(&flow_sensor))
+				{
+					default_profile.volume_ul = flow_sensor_get_volume_ul(&flow_sensor);
+					display_set_is_flowing(flow_sensor.is_flowing);
+					display_dirty = true;
+				}
+
+				break;
+			default:
+				break;
 		}
 
 		if (display_dirty)
 		{
-			display_draw_main_view();
+			display_draw_view();
 			display_dirty = false;
 		}
 	}

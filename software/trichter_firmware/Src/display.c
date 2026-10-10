@@ -12,34 +12,30 @@
 #include "u8g2_stm32_hal.h"
 #include "u8g2.h"
 
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
 
 static u8g2_t u8g2;
 
-static size_t volume_ml_int = 0;
-static size_t volume_ml_frac = 0;
 static bool is_flowing;
 
-static size_t counter = 0;
+static display_view_t view = VIEW_IDLE;
 
-void display_set_volume(size_t volume_ul)
-{
-	volume_ml_int = volume_ul / 1000;
-	volume_ml_frac = volume_ul % 1000;
-}
+static user_profile_t *user_profile;
 
 void display_set_is_flowing(bool flowing)
 {
 	is_flowing = flowing;
 }
 
-void display_increment_counter(void)
+void display_set_view(display_view_t selected_view)
 {
-	counter = counter + 1;
+	view = selected_view;
 }
 
-void display_decrement_counter(void)
+void display_set_user_profile(user_profile_t *profile)
 {
-	counter = counter - 1;
+	user_profile = profile;
 }
 
 void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address)
@@ -54,15 +50,42 @@ void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address)
 	u8g2_ClearDisplay(&u8g2);
 }
 
-void display_draw_main_view(void)
+static void display_draw_idle_view(void)
+{
+	char attempts_str[32];
+	char all_time_volume_str[32];
+
+	snprintf(all_time_volume_str, 32, "Volume: %u,%u l", user_profile->all_time_volume_ul / 1000000, (user_profile->all_time_volume_ul % 1000000) / 1000);
+	snprintf(attempts_str, 32, "Attempts: %u", user_profile->attempt_counter);
+
+	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
+
+	uint8_t button_width = u8g2_GetStrWidth(&u8g2, "START") + 4;
+	uint8_t button_height = 10;
+
+	u8g2_FirstPage(&u8g2);
+	do
+	{
+		u8g2_DrawStr(&u8g2, (DISPLAY_WIDTH - u8g2_GetStrWidth(&u8g2, "MENU")) / 2, 8, "MENU");
+		u8g2_DrawFrame(&u8g2, (DISPLAY_WIDTH - button_width) / 2 , 0, button_width, button_height);
+
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) - 10, user_profile->name);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2), all_time_volume_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, attempts_str);
+
+		u8g2_DrawStr(&u8g2, (DISPLAY_WIDTH- u8g2_GetStrWidth(&u8g2, "START")) / 2, DISPLAY_HEIGHT - 2, "START");
+		u8g2_DrawFrame(&u8g2, (DISPLAY_WIDTH - button_width) / 2, DISPLAY_HEIGHT - button_height, button_width, button_height);
+	}
+	while (u8g2_NextPage(&u8g2));
+}
+
+static void display_draw_main_view(void)
 {
 	char is_flowing_str[32];
 	char volume_str[32];
-	char counter_str[32];
 
 	snprintf(is_flowing_str, 32, "is_flowing: %d", is_flowing);
-	snprintf(volume_str, 32, "volume: %u,%u ml", volume_ml_int, volume_ml_frac);
-	snprintf(counter_str, 32, "counter: %u", counter);
+	snprintf(volume_str, 32, "volume: %u,%u ml", user_profile->volume_ul / 1000, user_profile->volume_ul % 1000);
 
 	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
 
@@ -71,7 +94,21 @@ void display_draw_main_view(void)
 	{
 		u8g2_DrawStr(&u8g2, 10, 15, volume_str);
 		u8g2_DrawStr(&u8g2, 10, 30, is_flowing_str);
-		u8g2_DrawStr(&u8g2, 10, 45, counter_str);
 	}
 	while (u8g2_NextPage(&u8g2));
+}
+
+void display_draw_view()
+{
+	switch (view) {
+		case VIEW_IDLE:
+			display_draw_idle_view();
+			break;
+
+		case VIEW_RUNNING:
+			display_draw_main_view();
+
+		default:
+			break;
+	}
 }
