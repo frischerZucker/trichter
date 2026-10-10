@@ -55,8 +55,8 @@ static void display_draw_idle_view(void)
 	char attempts_str[32];
 	char all_time_volume_str[32];
 
-	snprintf(all_time_volume_str, 32, "Volume: %u,%u l", user_profile->all_time_volume_ul / 1000000, (user_profile->all_time_volume_ul % 1000000) / 1000);
-	snprintf(attempts_str, 32, "Attempts: %u", user_profile->attempt_counter);
+	snprintf(all_time_volume_str, 32, "Vol: %u,%u l", user_profile->all_time_volume_ul / 1000000, (user_profile->all_time_volume_ul % 1000000) / 1000);
+	snprintf(attempts_str, 32, "Tries: %u", user_profile->attempt_counter);
 
 	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
 
@@ -66,15 +66,15 @@ static void display_draw_idle_view(void)
 	u8g2_FirstPage(&u8g2);
 	do
 	{
-		u8g2_DrawStr(&u8g2, (DISPLAY_WIDTH - u8g2_GetStrWidth(&u8g2, "MENU")) / 2, 8, "MENU");
-		u8g2_DrawFrame(&u8g2, (DISPLAY_WIDTH - button_width) / 2 , 0, button_width, button_height);
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "MENU")) / 2, 8, "MENU");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
 
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) - 10, user_profile->name);
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2), all_time_volume_str);
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, attempts_str);
 
-		u8g2_DrawStr(&u8g2, (DISPLAY_WIDTH- u8g2_GetStrWidth(&u8g2, "START")) / 2, DISPLAY_HEIGHT - 2, "START");
-		u8g2_DrawFrame(&u8g2, (DISPLAY_WIDTH - button_width) / 2, DISPLAY_HEIGHT - button_height, button_width, button_height);
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "START")) / 2, DISPLAY_HEIGHT - 2, "START");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);
 	}
 	while (u8g2_NextPage(&u8g2));
 }

@@ -16,8 +16,6 @@ static UART_HandleTypeDef huart1;
 
 static flow_sensor_state_t flow_sensor;
 
-static user_profile_t default_profile;
-
 static states_t state = STATE_IDLE;
 
 static bool btn_back = false;
@@ -30,6 +28,7 @@ static bool last_btn_push = false;
 static bool display_dirty = true;
 
 static uint32_t encoder_last_tick = 0;
+static int encoder_delta = 0;
 
 static void system_clock_init(void)
 {
@@ -151,6 +150,24 @@ static void gpio_init(void)
 
 static void process_user_input(void)
 {
+	if (encoder_delta != 0)
+	{
+		switch (state) {
+			case STATE_IDLE:
+				bool cycle_direction = encoder_delta > 0;
+
+				user_profile_cycle_profiles(cycle_direction);
+				display_set_user_profile(selected_profile);
+
+				display_dirty = true;
+				encoder_delta = 0;
+				break;
+
+			default:
+				break;
+		}
+	}
+
 	btn_back = !HAL_GPIO_ReadPin(PORT_BTN_BACK, PIN_BTN_BACK);
 	if (btn_back && last_btn_back == false)
 	{
@@ -163,8 +180,8 @@ static void process_user_input(void)
 	{
 		switch (state) {
 			case STATE_IDLE:
-				default_profile.volume_ul = 0;
-				default_profile.attempt_counter = default_profile.attempt_counter + 1;
+				selected_profile->volume_ul = 0;
+				selected_profile->attempt_counter = selected_profile->attempt_counter + 1;
 				flow_sensor_reset(&flow_sensor);
 
 				state = STATE_RUNNING;
@@ -172,7 +189,7 @@ static void process_user_input(void)
 				break;
 
 			case STATE_RUNNING:
-				default_profile.all_time_volume_ul = default_profile.all_time_volume_ul + default_profile.volume_ul;
+				selected_profile->all_time_volume_ul = selected_profile->all_time_volume_ul + selected_profile->volume_ul;
 
 				state = STATE_IDLE;
 				display_set_view(VIEW_IDLE);
@@ -217,12 +234,12 @@ void HAL_GPIO_EXTI_Rising_Callback(uint16_t gpio_pin)
 			/* counter-clockwise rotation */
 			if (HAL_GPIO_ReadPin(PORT_ENCODER_B, PIN_ENCODER_B))
 			{
-
+				encoder_delta = encoder_delta - 1;
 			}
 			/* clockwise rotation */
 			else
 			{
-
+				encoder_delta = encoder_delta + 1;
 			}
 
 			break;
@@ -245,9 +262,12 @@ int main(void)
 
 	flow_sensor_init(&flow_sensor);
 
-	user_profile_init(&default_profile, "Joe Biden");
+	user_profile_init();
+	user_profile_add_user("1 Joe Biden");
+	user_profile_add_user("2 deine mom");
+	user_profile_add_user("3 Omen");
 
-	display_set_user_profile(&default_profile);
+	display_set_user_profile(selected_profile);
 	display_set_view(VIEW_IDLE);
 
 	while (1)
@@ -267,7 +287,7 @@ int main(void)
 			case STATE_RUNNING:
 				if (flow_sensor_update(&flow_sensor))
 				{
-					default_profile.volume_ul = flow_sensor_get_volume_ul(&flow_sensor);
+					selected_profile->volume_ul = flow_sensor_get_volume_ul(&flow_sensor);
 					display_set_is_flowing(flow_sensor.is_flowing);
 					display_dirty = true;
 				}

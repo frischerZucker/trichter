@@ -8,6 +8,7 @@
 #ifndef USER_PROFILE_H_
 #define USER_PROFILE_H_
 
+#include "stdbool.h"
 #include "stddef.h"
 
 typedef struct
@@ -19,6 +20,13 @@ typedef struct
 	size_t attempt_counter;
 } user_profile_t;
 
-void user_profile_init(user_profile_t *profile, char *name);
+extern user_profile_t *selected_profile;
+
+void user_profile_init(void);
+
+int user_profile_add_user(char *name);
+void user_profile_cycle_profiles(bool clockwise);
+
+user_profile_t *user_profile_get_selected_profile(void);
 
 #endif /* USER_PROFILE_H_ */
