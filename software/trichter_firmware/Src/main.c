@@ -171,7 +171,20 @@ static void process_user_input(void)
 	btn_back = !HAL_GPIO_ReadPin(PORT_BTN_BACK, PIN_BTN_BACK);
 	if (btn_back && last_btn_back == false)
 	{
+		switch (state) {
+			case STATE_IDLE:
+				break;
 
+			case STATE_RUNNING:
+				/* Discard the try. */
+				state = STATE_IDLE;
+				display_set_view(VIEW_IDLE);
+				break;
+
+			default:
+				break;
+		}
+		display_dirty = true;
 	}
 	last_btn_back = btn_back;
 
@@ -181,7 +194,6 @@ static void process_user_input(void)
 		switch (state) {
 			case STATE_IDLE:
 				selected_profile->volume_ul = 0;
-				selected_profile->attempt_counter = selected_profile->attempt_counter + 1;
 				flow_sensor_reset(&flow_sensor);
 
 				state = STATE_RUNNING;
@@ -190,6 +202,7 @@ static void process_user_input(void)
 
 			case STATE_RUNNING:
 				selected_profile->all_time_volume_ul = selected_profile->all_time_volume_ul + selected_profile->volume_ul;
+				selected_profile->attempt_counter = selected_profile->attempt_counter + 1;
 
 				state = STATE_IDLE;
 				display_set_view(VIEW_IDLE);
