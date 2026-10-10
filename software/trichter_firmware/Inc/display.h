@@ -18,6 +18,7 @@ typedef enum
 {
 	VIEW_IDLE = 0,
 	VIEW_RUNNING,
+	VIEW_MENU,
 } display_view_t;
 
 void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address);

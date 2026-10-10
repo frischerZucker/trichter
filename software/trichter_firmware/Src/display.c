@@ -38,6 +38,43 @@ void display_set_user_profile(user_profile_t *profile)
 	user_profile = profile;
 }
 
+/*
+ * Draw a header for the current view.
+ */
+static void display_draw_header(void)
+{
+	char *text;
+	char *button_text;
+	uint8_t button_width;
+	uint8_t button_height = 10;
+
+	switch (view) {
+		case VIEW_IDLE:
+			text = "TRICHTER V0.1";
+			button_text = "MENU";
+			button_width = u8g2_GetStrWidth(&u8g2, "START") + 4;
+			break;
+
+		case VIEW_MENU:
+			text = "MENU";
+			button_text = "CANCEL";
+			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
+			break;
+
+		case VIEW_RUNNING:
+			text = "MEASURE";
+			button_text = "CANCEL";
+			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
+			break;
+
+		default:
+			break;
+	}
+
+	u8g2_DrawStr(&u8g2, (DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, button_text)) - u8g2_GetStrWidth(&u8g2, text)) / 2, 8, text);
+	u8g2_DrawFrame(&u8g2, 0 , 0, DISPLAY_WIDTH - button_width - 2, button_height);
+}
+
 void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address)
 {
 	u8g2_stm32_hal_init(i2c_handle, i2c_address);
@@ -68,6 +105,8 @@ static void display_draw_idle_view(void)
 	u8g2_FirstPage(&u8g2);
 	do
 	{
+		display_draw_header();
+
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "MENU")) / 2, 8, "MENU");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
 
@@ -76,6 +115,30 @@ static void display_draw_idle_view(void)
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, attempts_str);
 
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "START")) / 2, DISPLAY_HEIGHT - 2, "START");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);
+	}
+	while (u8g2_NextPage(&u8g2));
+}
+
+static void display_draw_menu_view(void)
+{
+	uint8_t button_width;
+	uint8_t button_height;
+
+	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
+
+	button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
+	button_height = 10;
+
+	u8g2_FirstPage(&u8g2);
+	do
+	{
+		display_draw_header();
+
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "CANCEL")) / 2, 8, "CANCEL");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
+
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "OK")) / 2, DISPLAY_HEIGHT - 2, "OK");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);
 	}
 	while (u8g2_NextPage(&u8g2));
@@ -99,6 +162,8 @@ static void display_draw_main_view(void)
 	u8g2_FirstPage(&u8g2);
 	do
 	{
+		display_draw_header();
+
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "CANCEL")) / 2, 8, "CANCEL");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
 
@@ -120,6 +185,10 @@ void display_draw_view()
 
 		case VIEW_RUNNING:
 			display_draw_main_view();
+			break;
+
+		case VIEW_MENU:
+			display_draw_menu_view();
 
 		default:
 			break;

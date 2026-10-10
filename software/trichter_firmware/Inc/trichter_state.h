@@ -12,8 +12,7 @@ typedef enum
 {
 	STATE_IDLE = 0,
 	STATE_RUNNING,
-	STATE_ADD_PROFILE,
-	STATE_LEADERBOARD,
-} states_t;
+	STATE_MENU,
+} trichter_state_t;
 
 #endif /* TRICHTER_STATE_H_ */

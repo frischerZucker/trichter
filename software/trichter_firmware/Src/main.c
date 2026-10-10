@@ -16,7 +16,7 @@ static UART_HandleTypeDef huart1;
 
 static flow_sensor_state_t flow_sensor;
 
-static states_t state = STATE_IDLE;
+static trichter_state_t state = STATE_IDLE;
 
 static bool btn_back = false;
 static bool last_btn_back = false;
@@ -173,6 +173,15 @@ static void process_user_input(void)
 	{
 		switch (state) {
 			case STATE_IDLE:
+				/* Open the menu. */
+				state = STATE_MENU;
+				display_set_view(VIEW_MENU);
+				break;
+
+			case STATE_MENU:
+				/* Close the menu. */
+				state = STATE_IDLE;
+				display_set_view(VIEW_IDLE);
 				break;
 
 			case STATE_RUNNING:
@@ -289,12 +298,6 @@ int main(void)
 
 		switch (state) {
 			case STATE_IDLE:
-				break;
-
-			case STATE_ADD_PROFILE:
-				break;
-
-			case STATE_LEADERBOARD:
 				break;
 
 			case STATE_RUNNING:
