@@ -12,6 +12,8 @@
 #include "u8g2_stm32_hal.h"
 #include "u8g2.h"
 
+#include "menu.h"
+
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
@@ -137,6 +139,8 @@ static void display_draw_menu_view(void)
 
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "CANCEL")) / 2, 8, "CANCEL");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
+
+		u8g2_DrawStr(&u8g2, 10,  DISPLAY_HEIGHT / 2, menu_entries[menu_selected_entry_idx].name);
 
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "OK")) / 2, DISPLAY_HEIGHT - 2, "OK");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);

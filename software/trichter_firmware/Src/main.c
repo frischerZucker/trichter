@@ -5,6 +5,7 @@
 
 #include "display.h"
 #include "flow_sensor.h"
+#include "menu.h"
 #include "trichter_state.h"
 #include "user_profile.h"
 
@@ -152,20 +153,27 @@ static void process_user_input(void)
 {
 	if (encoder_delta != 0)
 	{
+		bool cycle_direction = encoder_delta > 0;
+
 		switch (state) {
 			case STATE_IDLE:
-				bool cycle_direction = encoder_delta > 0;
-
 				user_profile_cycle_profiles(cycle_direction);
 				display_set_user_profile(selected_profile);
 
 				display_dirty = true;
-				encoder_delta = 0;
+				break;
+
+			case STATE_MENU:
+				menu_cycle_selected_entry(cycle_direction);
+
+				display_dirty = true;
 				break;
 
 			default:
 				break;
 		}
+
+		encoder_delta = 0;
 	}
 
 	btn_back = !HAL_GPIO_ReadPin(PORT_BTN_BACK, PIN_BTN_BACK);
@@ -207,6 +215,11 @@ static void process_user_input(void)
 
 				state = STATE_RUNNING;
 				display_set_view(VIEW_RUNNING);
+				break;
+
+			case STATE_MENU:
+				menu_entries[menu_selected_entry_idx].action();
+				display_dirty = true;
 				break;
 
 			case STATE_RUNNING:
@@ -288,6 +301,11 @@ int main(void)
 	user_profile_add_user("1 Joe Biden");
 	user_profile_add_user("2 deine mom");
 	user_profile_add_user("3 Omen");
+
+	menu_init();
+	menu_add_entry("New profile", NULL);
+	menu_add_entry("Del profile", NULL);
+	menu_add_entry("Reset", HAL_NVIC_SystemReset);
 
 	display_set_user_profile(selected_profile);
 	display_set_view(VIEW_IDLE);
