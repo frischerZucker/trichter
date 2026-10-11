@@ -58,8 +58,10 @@ int user_profile_add_user(char *name)
 	size_t idx = num_profiles;
 
 	profiles[idx].volume_ul = 0;
-	profiles[idx].fastest_attempt_us = SIZE_MAX;
+	profiles[idx].fastest_attempt_ms = SIZE_MAX;
 	profiles[idx].attempt_counter = 0;
+	profiles[idx].start_time_ms = 0;
+	profiles[idx].end_time_ms = 0;
 
 	strncpy(profiles[idx].name, name, USER_PROFILE_MAX_NAME_LEN);
 	profiles[idx].name[USER_PROFILE_MAX_NAME_LEN] = '\0';	// If name is >USER_PROFILE_MAX_NAME_LEN chars profile->name would not be null-terminated otherwise.

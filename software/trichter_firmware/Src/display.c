@@ -20,6 +20,8 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
+#define TIME_MAX_MS 1000000	// A timespan larger then 1000 s is treated as invalid. -> Used for rendering of uninitialized timespans.
+
 static u8g2_t u8g2;
 
 static bool is_flowing;
@@ -102,11 +104,20 @@ static void display_draw_idle_view(void)
 {
 	uint8_t button_width;
 	uint8_t button_height;
-	char attempts_str[32];
 	char all_time_volume_str[32];
+	char attempts_str[32];
+	char fastest_attempt_str[32];
 
 	snprintf(all_time_volume_str, 32, "Vol: %u,%u l", selected_profile->all_time_volume_ul / 1000000, (selected_profile->all_time_volume_ul % 1000000) / 1000);
 	snprintf(attempts_str, 32, "Tries: %u", selected_profile->attempt_counter);
+	if (selected_profile->fastest_attempt_ms < TIME_MAX_MS)
+	{
+		snprintf(fastest_attempt_str, 32, "Best time: %u,%u s", selected_profile->fastest_attempt_ms / 1000, selected_profile->fastest_attempt_ms % 1000);
+	}
+	else
+	{
+		strcpy(fastest_attempt_str, "Best time: /");
+	}
 
 	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
 
@@ -123,7 +134,8 @@ static void display_draw_idle_view(void)
 
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) - 10, selected_profile->name);
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2), all_time_volume_str);
-		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, attempts_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, fastest_attempt_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 20, attempts_str);
 
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "START")) / 2, DISPLAY_HEIGHT - 2, "START");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);
@@ -187,11 +199,16 @@ static void display_draw_main_view(void)
 {
 	uint8_t button_width;
 	uint8_t button_height;
-	char is_flowing_str[32];
+	char time_str[32];
 	char volume_str[32];
 
-	snprintf(is_flowing_str, 32, "is_flowing: %d", is_flowing);
-	snprintf(volume_str, 32, "volume: %u,%u ml", selected_profile->volume_ul / 1000, selected_profile->volume_ul % 1000);
+	uint32_t dt = selected_profile->end_time_ms - selected_profile->start_time_ms;
+	if (dt > TIME_MAX_MS)
+	{
+		dt = 0;
+	}
+	snprintf(time_str, 32, "Time: %lu,%lu s", dt / 1000, dt % 1000);
+	snprintf(volume_str, 32, "Vol: %u,%u ml", selected_profile->volume_ul / 1000, selected_profile->volume_ul % 1000);
 
 	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
 
@@ -207,7 +224,7 @@ static void display_draw_main_view(void)
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
 
 		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) - 10, volume_str);
-		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, is_flowing_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, time_str);
 
 		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "SAVE")) / 2, DISPLAY_HEIGHT - 2, "SAVE");
 		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);

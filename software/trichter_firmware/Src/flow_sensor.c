@@ -45,7 +45,7 @@ int flow_sensor_update(flow_sensor_state_t *sensor)
 
 		last_update_time = current_update_time;
 
-		return 1;
+		return sensor->is_flowing;
 	}
 
 	return 0;

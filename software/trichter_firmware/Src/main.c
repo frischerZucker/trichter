@@ -24,6 +24,8 @@ static bool last_btn_back = false;
 static bool btn_confirm = false;
 static bool last_btn_confirm = false;
 
+static bool drinking_started = false;
+
 static bool display_dirty = true;
 
 static uint32_t encoder_last_tick = 0;
@@ -248,7 +250,10 @@ static void process_user_input(void)
 		switch (state) {
 			case STATE_IDLE:
 				selected_profile->volume_ul = 0;
+				selected_profile->start_time_ms = HAL_GetTick();
 				flow_sensor_reset(&flow_sensor);
+
+				drinking_started = false;
 
 				state = STATE_RUNNING;
 				display_set_view(VIEW_RUNNING);
@@ -277,13 +282,32 @@ static void process_user_input(void)
 				break;
 
 			case STATE_RUNNING:
+				// Discard the attempt if nothing was drunken.
+				if (selected_profile->volume_ul == 0)
+				{
+					state = STATE_IDLE;
+					display_set_view(VIEW_IDLE);
+					break;
+				}
+
 				selected_profile->all_time_volume_ul = selected_profile->all_time_volume_ul + selected_profile->volume_ul;
 				selected_profile->attempt_counter = selected_profile->attempt_counter + 1;
+
+				size_t dt = (selected_profile->end_time_ms - selected_profile->start_time_ms);
+				if (dt < selected_profile->fastest_attempt_ms)
+				{
+					selected_profile->fastest_attempt_ms = dt;
+				}
 
 				if (strcmp(selected_profile->name, "TEAM") != 0)
 				{
 					team_profile->all_time_volume_ul = team_profile->all_time_volume_ul + selected_profile->volume_ul;
 					team_profile->attempt_counter = team_profile->attempt_counter + 1;
+
+					if (dt < team_profile->fastest_attempt_ms)
+					{
+						team_profile->fastest_attempt_ms = dt;
+					}
 				}
 
 				state = STATE_IDLE;
@@ -379,7 +403,15 @@ int main(void)
 			case STATE_RUNNING:
 				if (flow_sensor_update(&flow_sensor))
 				{
+					// Set the start time when a volume flow is detected for the first time after the measurement was started.
+					if (drinking_started == false)
+					{
+						selected_profile->start_time_ms = HAL_GetTick();
+						drinking_started = true;
+					}
+
 					selected_profile->volume_ul = flow_sensor_get_volume_ul(&flow_sensor);
+					selected_profile->end_time_ms = HAL_GetTick();
 					display_set_is_flowing(flow_sensor.is_flowing);
 					display_dirty = true;
 				}
