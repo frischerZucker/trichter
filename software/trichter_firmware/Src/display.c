@@ -110,9 +110,9 @@ static void display_draw_idle_view(void)
 
 	snprintf(all_time_volume_str, 32, "Vol: %u,%u l", selected_profile->all_time_volume_ul / 1000000, (selected_profile->all_time_volume_ul % 1000000) / 1000);
 	snprintf(attempts_str, 32, "Tries: %u", selected_profile->attempt_counter);
-	if (selected_profile->fastest_attempt_ms < TIME_MAX_MS)
+	if (selected_profile->fastest_attempt_ms_per_l < TIME_MAX_MS)
 	{
-		snprintf(fastest_attempt_str, 32, "Best time: %u,%u s", selected_profile->fastest_attempt_ms / 1000, selected_profile->fastest_attempt_ms % 1000);
+		snprintf(fastest_attempt_str, 32, "Best time: %u,%u s/l", selected_profile->fastest_attempt_ms_per_l / 1000, selected_profile->fastest_attempt_ms_per_l % 1000);
 	}
 	else
 	{

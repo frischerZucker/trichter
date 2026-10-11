@@ -293,10 +293,11 @@ static void process_user_input(void)
 				selected_profile->all_time_volume_ul = selected_profile->all_time_volume_ul + selected_profile->volume_ul;
 				selected_profile->attempt_counter = selected_profile->attempt_counter + 1;
 
-				size_t dt = (selected_profile->end_time_ms - selected_profile->start_time_ms);
-				if (dt < selected_profile->fastest_attempt_ms)
+				// Normalize the time of the attempt to ms per l to make them comparable. -> ms * 1000 / (ul / 1000) = us / ml = ms / l
+				size_t s_per_l = (selected_profile->end_time_ms - selected_profile->start_time_ms) * 1000 / (selected_profile->volume_ul / 1000);
+				if (s_per_l < selected_profile->fastest_attempt_ms_per_l)
 				{
-					selected_profile->fastest_attempt_ms = dt;
+					selected_profile->fastest_attempt_ms_per_l = s_per_l;
 				}
 
 				if (strcmp(selected_profile->name, "TEAM") != 0)
@@ -304,9 +305,9 @@ static void process_user_input(void)
 					team_profile->all_time_volume_ul = team_profile->all_time_volume_ul + selected_profile->volume_ul;
 					team_profile->attempt_counter = team_profile->attempt_counter + 1;
 
-					if (dt < team_profile->fastest_attempt_ms)
+					if (s_per_l < team_profile->fastest_attempt_ms_per_l)
 					{
-						team_profile->fastest_attempt_ms = dt;
+						team_profile->fastest_attempt_ms_per_l = s_per_l;
 					}
 				}
 

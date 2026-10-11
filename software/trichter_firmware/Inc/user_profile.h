@@ -18,7 +18,7 @@ typedef struct
 	char name[32];
 	size_t volume_ul;
 	size_t all_time_volume_ul;
-	size_t fastest_attempt_ms;
+	size_t fastest_attempt_ms_per_l;
 	size_t attempt_counter;
 	size_t start_time_ms;
 	size_t end_time_ms;

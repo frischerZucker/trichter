@@ -58,7 +58,7 @@ int user_profile_add_user(char *name)
 	size_t idx = num_profiles;
 
 	profiles[idx].volume_ul = 0;
-	profiles[idx].fastest_attempt_ms = SIZE_MAX;
+	profiles[idx].fastest_attempt_ms_per_l = SIZE_MAX;
 	profiles[idx].attempt_counter = 0;
 	profiles[idx].start_time_ms = 0;
 	profiles[idx].end_time_ms = 0;
