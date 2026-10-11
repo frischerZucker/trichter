@@ -13,6 +13,7 @@
 #include "u8g2_stm32_hal.h"
 #include "u8g2.h"
 
+#include "main.h"
 #include "menu.h"
 #include "user_profile.h"
 
@@ -47,32 +48,32 @@ void display_set_view(display_view_t selected_view)
  */
 static void display_draw_header(void)
 {
-	char *text;
+	char text[32];
 	char *button_text;
 	uint8_t button_width;
 	uint8_t button_height = 10;
 
 	switch (view) {
 		case VIEW_IDLE:
-			text = "TRICHTER V0.1";
+			snprintf(text, 32, "TRICHTER %s", VERSION_STR);
 			button_text = "MENU";
 			button_width = u8g2_GetStrWidth(&u8g2, "START") + 4;
 			break;
 
 		case VIEW_MENU:
-			text = "MENU";
+			strcpy(text, "MENU");
 			button_text = "CANCEL";
 			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
 			break;
 
 		case VIEW_RUNNING:
-			text = "MEASURE";
+			strcpy(text, "MEASURE");
 			button_text = "CANCEL";
 			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
 			break;
 
 		case VIEW_USER_CREATION:
-			text = "ENTER USER NAME";
+			strcpy(text, "ENTER USER NAME");
 			button_text = "CANCEL";
 			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
 			break;
