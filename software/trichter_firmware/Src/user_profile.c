@@ -69,3 +69,23 @@ int user_profile_add_user(char *name)
 
 	return 0;
 }
+
+/*
+ * Delete a user profile.
+ */
+void user_profile_remove_current_user(void)
+{
+	for (size_t idx = profile_idx; idx < num_profiles - 1; idx = idx + 1)
+	{
+		profiles[idx] = profiles[idx + 1];
+	}
+
+	num_profiles = num_profiles - 1;
+	profile_idx = profile_idx - 1;
+	if (profile_idx >= num_profiles)
+	{
+		profile_idx = 0;
+	}
+
+	selected_profile = &profiles[profile_idx];
+}

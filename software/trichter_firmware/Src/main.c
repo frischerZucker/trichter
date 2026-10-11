@@ -23,8 +23,6 @@ static bool btn_back = false;
 static bool last_btn_back = false;
 static bool btn_confirm = false;
 static bool last_btn_confirm = false;
-static bool btn_push = false;
-static bool last_btn_push = false;
 
 static bool display_dirty = true;
 
@@ -158,7 +156,6 @@ static void process_user_input(void)
 		switch (state) {
 			case STATE_IDLE:
 				user_profile_cycle_profiles(cycle_direction);
-				display_set_user_profile(selected_profile);
 
 				display_dirty = true;
 				break;
@@ -219,6 +216,9 @@ static void process_user_input(void)
 
 			case STATE_MENU:
 				menu_entries[menu_selected_entry_idx].action();
+
+				state = STATE_IDLE;
+				display_set_view(VIEW_IDLE);
 				display_dirty = true;
 				break;
 
@@ -304,10 +304,9 @@ int main(void)
 
 	menu_init();
 	menu_add_entry("New profile", NULL);
-	menu_add_entry("Del profile", NULL);
+	menu_add_entry("Del profile", user_profile_remove_current_user);
 	menu_add_entry("Reset", HAL_NVIC_SystemReset);
 
-	display_set_user_profile(selected_profile);
 	display_set_view(VIEW_IDLE);
 
 	while (1)
