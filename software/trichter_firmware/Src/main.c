@@ -226,6 +226,12 @@ static void process_user_input(void)
 				selected_profile->all_time_volume_ul = selected_profile->all_time_volume_ul + selected_profile->volume_ul;
 				selected_profile->attempt_counter = selected_profile->attempt_counter + 1;
 
+				if (strcmp(selected_profile->name, "TEAM") != 0)
+				{
+					team_profile->all_time_volume_ul = team_profile->all_time_volume_ul + selected_profile->volume_ul;
+					team_profile->attempt_counter = team_profile->attempt_counter + 1;
+				}
+
 				state = STATE_IDLE;
 				display_set_view(VIEW_IDLE);
 				break;
@@ -298,6 +304,7 @@ int main(void)
 	flow_sensor_init(&flow_sensor);
 
 	user_profile_init();
+	user_profile_add_user("TEAM");
 	user_profile_add_user("1 Joe Biden");
 	user_profile_add_user("2 deine mom");
 	user_profile_add_user("3 Omen");

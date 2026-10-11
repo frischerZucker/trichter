@@ -21,6 +21,7 @@ typedef struct
 } user_profile_t;
 
 extern user_profile_t *selected_profile;
+extern user_profile_t *team_profile;
 
 void user_profile_init(void);
 
