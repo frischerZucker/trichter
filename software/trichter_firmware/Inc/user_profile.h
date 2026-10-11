@@ -11,6 +11,8 @@
 #include "stdbool.h"
 #include "stddef.h"
 
+#define USER_PROFILE_MAX_NAME_LEN 10
+
 typedef struct
 {
 	char name[32];

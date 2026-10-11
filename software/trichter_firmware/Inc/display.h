@@ -19,6 +19,7 @@ typedef enum
 	VIEW_IDLE = 0,
 	VIEW_RUNNING,
 	VIEW_MENU,
+	VIEW_USER_CREATION,
 } display_view_t;
 
 void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address);
@@ -26,6 +27,7 @@ void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address);
 void display_draw_view();
 
 void display_set_view(display_view_t selected_view);
+void display_set_new_user_name(char *name);
 void display_set_is_flowing(bool flowing);
 
 #endif /* DISPLAY_H_ */

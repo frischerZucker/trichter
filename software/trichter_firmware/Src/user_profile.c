@@ -10,7 +10,6 @@
 #include "string.h"
 
 #define USER_PROFILE_MAX_NUM_PROFILES 10
-#define USER_PROFILE_MAX_NAME_LEN 32
 
 static user_profile_t profiles[USER_PROFILE_MAX_NUM_PROFILES];
 static uint8_t num_profiles;
@@ -62,8 +61,8 @@ int user_profile_add_user(char *name)
 	profiles[idx].fastest_attempt_us = SIZE_MAX;
 	profiles[idx].attempt_counter = 0;
 
-	strncpy(profiles[idx].name, name, 31);
-	profiles[idx].name[31] = '\0';	// If name is >32 chars profile->name would not be null-terminated otherwise.
+	strncpy(profiles[idx].name, name, USER_PROFILE_MAX_NAME_LEN);
+	profiles[idx].name[USER_PROFILE_MAX_NAME_LEN] = '\0';	// If name is >USER_PROFILE_MAX_NAME_LEN chars profile->name would not be null-terminated otherwise.
 
 	num_profiles = num_profiles + 1;
 

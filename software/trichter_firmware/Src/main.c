@@ -29,6 +29,9 @@ static bool display_dirty = true;
 static uint32_t encoder_last_tick = 0;
 static int encoder_delta = 0;
 
+static char new_user_name[USER_PROFILE_MAX_NAME_LEN + 1];
+static size_t new_user_name_idx;
+
 static void system_clock_init(void)
 {
 	RCC_OscInitTypeDef RCC_OscInitStruct =
@@ -147,6 +150,24 @@ static void gpio_init(void)
 	HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }
 
+static void menu_callback_remove_user(void)
+{
+	user_profile_remove_current_user();
+
+	display_set_view(VIEW_IDLE);
+	state = STATE_IDLE;
+}
+
+static void menu_callback_add_user(void)
+{
+	new_user_name_idx = 0;
+	strncpy(new_user_name, "a---------", USER_PROFILE_MAX_NAME_LEN + 1);
+	display_set_new_user_name(new_user_name);
+
+	display_set_view(VIEW_USER_CREATION);
+	state = STATE_USER_CREATION;
+}
+
 static void process_user_input(void)
 {
 	if (encoder_delta != 0)
@@ -163,6 +184,20 @@ static void process_user_input(void)
 			case STATE_MENU:
 				menu_cycle_selected_entry(cycle_direction);
 
+				display_dirty = true;
+				break;
+
+			case STATE_USER_CREATION:
+				/* Cycle between characters. Skip unprintable characters. */
+				new_user_name[new_user_name_idx] = new_user_name[new_user_name_idx] + encoder_delta;
+				if (new_user_name[new_user_name_idx] > '~')
+				{
+					new_user_name[new_user_name_idx] = ' ';
+				}
+				else if (new_user_name[new_user_name_idx] < ' ')
+				{
+					new_user_name[new_user_name_idx] = '~';
+				}
 				display_dirty = true;
 				break;
 
@@ -185,6 +220,11 @@ static void process_user_input(void)
 
 			case STATE_MENU:
 				/* Close the menu. */
+				state = STATE_IDLE;
+				display_set_view(VIEW_IDLE);
+				break;
+
+			case STATE_USER_CREATION:
 				state = STATE_IDLE;
 				display_set_view(VIEW_IDLE);
 				break;
@@ -216,9 +256,23 @@ static void process_user_input(void)
 
 			case STATE_MENU:
 				menu_entries[menu_selected_entry_idx].action();
+				display_dirty = true;
+				break;
 
-				state = STATE_IDLE;
-				display_set_view(VIEW_IDLE);
+			case STATE_USER_CREATION:
+				/* Edit the next character of the new user name. */
+				new_user_name_idx = new_user_name_idx + 1;
+				if (new_user_name_idx < USER_PROFILE_MAX_NAME_LEN)
+				{
+					new_user_name[new_user_name_idx] = ' ';
+				}
+				/* Create a profile when the names last character is confirmed. */
+				else
+				{
+					user_profile_add_user(new_user_name);
+					display_set_view(VIEW_IDLE);
+					state = STATE_IDLE;
+				}
 				display_dirty = true;
 				break;
 
@@ -305,13 +359,11 @@ int main(void)
 
 	user_profile_init();
 	user_profile_add_user("TEAM");
-	user_profile_add_user("1 Joe Biden");
-	user_profile_add_user("2 deine mom");
-	user_profile_add_user("3 Omen");
+	user_profile_add_user("Rote Beete");
 
 	menu_init();
-	menu_add_entry("New profile", NULL);
-	menu_add_entry("Del profile", user_profile_remove_current_user);
+	menu_add_entry("New profile", menu_callback_add_user);
+	menu_add_entry("Del profile", menu_callback_remove_user);
 	menu_add_entry("Reset", HAL_NVIC_SystemReset);
 
 	display_set_view(VIEW_IDLE);

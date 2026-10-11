@@ -13,6 +13,7 @@ typedef enum
 	STATE_IDLE = 0,
 	STATE_RUNNING,
 	STATE_MENU,
+	STATE_USER_CREATION,
 } trichter_state_t;
 
 #endif /* TRICHTER_STATE_H_ */

@@ -8,6 +8,7 @@
 #include "display.h"
 
 #include "stdio.h"
+#include "string.h"
 
 #include "u8g2_stm32_hal.h"
 #include "u8g2.h"
@@ -23,6 +24,13 @@ static u8g2_t u8g2;
 static bool is_flowing;
 
 static display_view_t view = VIEW_IDLE;
+
+char *new_user_name;
+
+void display_set_new_user_name(char *name)
+{
+	new_user_name = name;
+}
 
 void display_set_is_flowing(bool flowing)
 {
@@ -59,6 +67,12 @@ static void display_draw_header(void)
 
 		case VIEW_RUNNING:
 			text = "MEASURE";
+			button_text = "CANCEL";
+			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
+			break;
+
+		case VIEW_USER_CREATION:
+			text = "ENTER USER NAME";
 			button_text = "CANCEL";
 			button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
 			break;
@@ -142,6 +156,32 @@ static void display_draw_menu_view(void)
 	while (u8g2_NextPage(&u8g2));
 }
 
+static void display_draw_user_creation_view(void)
+{
+	uint8_t button_width;
+	uint8_t button_height;
+
+	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
+
+	button_width = u8g2_GetStrWidth(&u8g2, "CANCEL") + 4;
+	button_height = 10;
+
+	u8g2_FirstPage(&u8g2);
+	do
+	{
+		display_draw_header();
+
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "CANCEL")) / 2, 8, "CANCEL");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
+
+		u8g2_DrawStr(&u8g2, 10,  DISPLAY_HEIGHT / 2, new_user_name);
+
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "NEXT")) / 2, DISPLAY_HEIGHT - 2, "NEXT");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);
+	}
+	while (u8g2_NextPage(&u8g2));
+}
+
 static void display_draw_main_view(void)
 {
 	uint8_t button_width;
@@ -187,6 +227,11 @@ void display_draw_view()
 
 		case VIEW_MENU:
 			display_draw_menu_view();
+			break;
+
+		case VIEW_USER_CREATION:
+			display_draw_user_creation_view();
+			break;
 
 		default:
 			break;
