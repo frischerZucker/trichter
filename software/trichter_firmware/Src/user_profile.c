@@ -11,6 +11,8 @@
 
 #define USER_PROFILE_MAX_NUM_PROFILES 10
 
+#define USER_ID_TEAM 0
+
 static user_profile_t profiles[USER_PROFILE_MAX_NUM_PROFILES];
 static uint8_t num_profiles;
 static uint8_t profile_idx;
@@ -24,6 +26,8 @@ void user_profile_init(void)
 	num_profiles = 0;
 	profile_idx = 0;
 	selected_profile = &profiles[0];
+
+	user_profile_add_user("TEAM");
 }
 
 void user_profile_cycle_profiles(bool clockwise)
@@ -57,6 +61,7 @@ int user_profile_add_user(char *name)
 
 	size_t idx = num_profiles;
 
+	profiles[idx].id = idx;
 	profiles[idx].volume_ul = 0;
 	profiles[idx].fastest_attempt_ms_per_l = SIZE_MAX;
 	profiles[idx].attempt_counter = 0;
@@ -77,7 +82,7 @@ int user_profile_add_user(char *name)
 void user_profile_remove_current_user(void)
 {
 	/* The shared profile for the team should not be deleted. */
-	if (profile_idx == 0)
+	if (profile_idx == USER_ID_TEAM)
 	{
 		return;
 	}

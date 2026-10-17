@@ -383,7 +383,6 @@ int main(void)
 	flow_sensor_init(&flow_sensor);
 
 	user_profile_init();
-	user_profile_add_user("TEAM");
 	user_profile_add_user("Rote Beete");
 
 	menu_init();

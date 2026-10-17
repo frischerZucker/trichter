@@ -16,6 +16,7 @@
 typedef struct
 {
 	char name[USER_PROFILE_MAX_NAME_LEN + 1];
+	size_t id;
 	size_t volume_ul;
 	size_t all_time_volume_ul;
 	size_t fastest_attempt_ms_per_l;
