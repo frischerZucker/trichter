@@ -22,13 +22,27 @@
 
 #define TIME_MAX_MS 1000000	// A timespan larger then 1000 s is treated as invalid. -> Used for rendering of uninitialized timespans.
 
+#define UL_TO_L_INT(vol_ul) (vol_ul / 1000000)
+#define UL_TO_L_FRAC(vol_ul) ((vol_ul % 1000000) / 1000)
+
 static u8g2_t u8g2;
 
 static bool is_flowing;
 
 static display_view_t view = VIEW_IDLE;
 
+static int selected_leader_board = 0;
+
 char *new_user_name;
+
+void display_cycle_leader_board(void)
+{
+	selected_leader_board = selected_leader_board + 1;
+	if (selected_leader_board > 2)
+	{
+		selected_leader_board = 0;
+	}
+}
 
 void display_set_new_user_name(char *name)
 {
@@ -100,15 +114,78 @@ void display_init(I2C_HandleTypeDef *i2c_handle, uint8_t i2c_address)
 	u8g2_ClearDisplay(&u8g2);
 }
 
+static void display_draw_leaderboard_view(void)
+{
+	uint8_t button_width;
+	uint8_t button_height;
+	char selected_category_str[32];
+	char first_place_str[32];
+	char second_place_str[32];
+	char third_place_str[32];
+
+	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
+
+	button_width = u8g2_GetStrWidth(&u8g2, "START") + 4; // Button size should be the same as in the idle view.
+	button_height = 10;
+
+	switch (selected_leader_board) {
+		case 0:
+			snprintf(selected_category_str, 32, "Leader board: Volume");
+			snprintf(first_place_str, 32, "1. %s: %u,%u l", leader_board_volume[0]->name, UL_TO_L_INT(leader_board_volume[0]->all_time_volume_ul), UL_TO_L_FRAC(leader_board_volume[0]->all_time_volume_ul));
+			snprintf(second_place_str, 32, "2. %s: %u,%u l", leader_board_volume[1]->name, UL_TO_L_INT(leader_board_volume[1]->all_time_volume_ul), UL_TO_L_FRAC(leader_board_volume[1]->all_time_volume_ul));
+			snprintf(third_place_str, 32, "3. %s: %u,%u l", leader_board_volume[2]->name, UL_TO_L_INT(leader_board_volume[2]->all_time_volume_ul), UL_TO_L_FRAC(leader_board_volume[2]->all_time_volume_ul));
+			break;
+		case 1:
+			snprintf(selected_category_str, 32, "Leader board: Speed");
+			snprintf(first_place_str, 32, "1. %s: %u,%u s/l", leader_board_speed[0]->name, leader_board_speed[0]->fastest_attempt_ms_per_l / 1000, leader_board_speed[0]->fastest_attempt_ms_per_l % 1000);
+			snprintf(second_place_str, 32, "2. %s: %u,%u s/l", leader_board_speed[1]->name, leader_board_speed[1]->fastest_attempt_ms_per_l / 1000, leader_board_speed[1]->fastest_attempt_ms_per_l % 1000);
+			snprintf(third_place_str, 32, "3. %s: %u,%u s/l", leader_board_speed[2]->name, leader_board_speed[2]->fastest_attempt_ms_per_l / 1000, leader_board_speed[2]->fastest_attempt_ms_per_l % 1000);
+			break;
+		case 2:
+			snprintf(selected_category_str, 32, "Leader board: Attempts");
+			snprintf(first_place_str, 32, "1. %s: %u", leader_board_attempts[0]->name, leader_board_attempts[0]->attempt_counter);
+			snprintf(second_place_str, 32, "2. %s: %u", leader_board_attempts[1]->name, leader_board_attempts[1]->attempt_counter);
+			snprintf(third_place_str, 32, "3. %s: %u", leader_board_attempts[2]->name, leader_board_attempts[2]->attempt_counter);
+			break;
+		default:
+			break;
+	}
+
+	u8g2_FirstPage(&u8g2);
+	do
+	{
+		display_draw_header();
+
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "MENU")) / 2, 8, "MENU");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width , 0, button_width, button_height);
+
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) - 10, selected_category_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2), first_place_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 10, second_place_str);
+		u8g2_DrawStr(&u8g2, 10, (DISPLAY_HEIGHT / 2) + 20, third_place_str);
+
+		u8g2_DrawStr(&u8g2, DISPLAY_WIDTH - button_width + (button_width - u8g2_GetStrWidth(&u8g2, "NEXT")) / 2, DISPLAY_HEIGHT - 2, "NEXT");
+		u8g2_DrawFrame(&u8g2, DISPLAY_WIDTH - button_width, DISPLAY_HEIGHT - button_height, button_width, button_height);
+	}
+	while (u8g2_NextPage(&u8g2));
+}
+
 static void display_draw_idle_view(void)
 {
+	// This user profile is just a placeholder for the leader board. This was the easiest way to get the UI to work as I  wanted.
+	if (selected_profile->id == USER_ID_LEADERBOARD)
+	{
+		display_draw_leaderboard_view();
+		return;
+	}
+
 	uint8_t button_width;
 	uint8_t button_height;
 	char all_time_volume_str[32];
 	char attempts_str[32];
 	char fastest_attempt_str[32];
 
-	snprintf(all_time_volume_str, 32, "Vol: %u,%u l", selected_profile->all_time_volume_ul / 1000000, (selected_profile->all_time_volume_ul % 1000000) / 1000);
+	snprintf(all_time_volume_str, 32, "Vol: %u,%u l", UL_TO_L_INT(selected_profile->all_time_volume_ul ), UL_TO_L_FRAC(selected_profile->all_time_volume_ul ));
 	snprintf(attempts_str, 32, "Tries: %u", selected_profile->attempt_counter);
 	if (selected_profile->fastest_attempt_ms_per_l < TIME_MAX_MS)
 	{

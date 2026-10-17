@@ -249,14 +249,23 @@ static void process_user_input(void)
 	{
 		switch (state) {
 			case STATE_IDLE:
-				selected_profile->volume_ul = 0;
-				selected_profile->start_time_ms = HAL_GetTick();
-				flow_sensor_reset(&flow_sensor);
+				// Change the displayed stat if the leaderboard is selected.
+				if (selected_profile->id == USER_ID_LEADERBOARD)
+				{
+					display_cycle_leader_board();
+				}
+				// Start a measurement if a real profile is selected.
+				else
+				{
+					selected_profile->volume_ul = 0;
+					selected_profile->start_time_ms = HAL_GetTick();
+					flow_sensor_reset(&flow_sensor);
 
-				drinking_started = false;
+					drinking_started = false;
 
-				state = STATE_RUNNING;
-				display_set_view(VIEW_RUNNING);
+					state = STATE_RUNNING;
+					display_set_view(VIEW_RUNNING);
+				}
 				break;
 
 			case STATE_MENU:
@@ -300,7 +309,7 @@ static void process_user_input(void)
 					selected_profile->fastest_attempt_ms_per_l = s_per_l;
 				}
 
-				if (strcmp(selected_profile->name, "TEAM") != 0)
+				if (selected_profile->id != USER_ID_TEAM)
 				{
 					team_profile->all_time_volume_ul = team_profile->all_time_volume_ul + selected_profile->volume_ul;
 					team_profile->attempt_counter = team_profile->attempt_counter + 1;
@@ -310,6 +319,8 @@ static void process_user_input(void)
 						team_profile->fastest_attempt_ms_per_l = s_per_l;
 					}
 				}
+
+				user_profile_update_leader_board();
 
 				state = STATE_IDLE;
 				display_set_view(VIEW_IDLE);
@@ -383,7 +394,9 @@ int main(void)
 	flow_sensor_init(&flow_sensor);
 
 	user_profile_init();
-	user_profile_add_user("Rote Beete");
+//	user_profile_add_user("Rote Beete");
+	user_profile_add_user("John");
+	user_profile_add_user("Dr. Doe");
 
 	menu_init();
 	menu_add_entry("New profile", menu_callback_add_user);

@@ -31,6 +31,6 @@ void Error_Handler(void);
 #define PIN_IO1 GPIO_PIN_5
 #define PORT_IO1 GPIOB
 
-[[ maybe_unused ]]static const char *VERSION_STR = "v0.2";
+[[ maybe_unused ]]static const char *VERSION_STR = "v0.3";
 
 #endif

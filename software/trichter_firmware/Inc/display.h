@@ -30,4 +30,6 @@ void display_set_view(display_view_t selected_view);
 void display_set_new_user_name(char *name);
 void display_set_is_flowing(bool flowing);
 
+void display_cycle_leader_board(void);
+
 #endif /* DISPLAY_H_ */
