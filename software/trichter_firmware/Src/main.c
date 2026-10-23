@@ -4,6 +4,7 @@
 #include "string.h"
 
 #include "display.h"
+#include "flash.h"
 #include "flow_sensor.h"
 #include "menu.h"
 #include "trichter_state.h"
@@ -168,6 +169,29 @@ static void menu_callback_add_user(void)
 
 	display_set_view(VIEW_USER_CREATION);
 	state = STATE_USER_CREATION;
+}
+
+static void menu_callback_read_flash(void)
+{
+	void *address = FLASH_USER_PAGE_BASE_ADDRESS - PAGESIZE;
+
+	uint64_t data[2];
+	flash_read(address, data, 2);
+
+	team_profile->all_time_volume_ul = data[0];
+	team_profile->attempt_counter = data[1];
+}
+
+static void menu_callback_write_flash(void)
+{
+	void *address = FLASH_USER_PAGE_BASE_ADDRESS - PAGESIZE;
+
+	uint64_t data[2];
+	data[0] = team_profile->all_time_volume_ul + 1000;
+	data[1] = team_profile->attempt_counter + 2;
+
+	flash_clear_page(address);
+	flash_write(address, data, 2);
 }
 
 static void process_user_input(void)
@@ -402,6 +426,9 @@ int main(void)
 	menu_add_entry("New profile", menu_callback_add_user);
 	menu_add_entry("Del profile", menu_callback_remove_user);
 	menu_add_entry("Reset", HAL_NVIC_SystemReset);
+
+	menu_add_entry("read", menu_callback_read_flash);
+	menu_add_entry("write", menu_callback_write_flash);
 
 	display_set_view(VIEW_IDLE);
 

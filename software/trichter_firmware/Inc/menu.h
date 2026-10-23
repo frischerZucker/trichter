@@ -11,7 +11,7 @@
 #include "stdbool.h"
 #include "stddef.h"
 
-#define MENU_MAX_NUM_ENTRIES 3
+#define MENU_MAX_NUM_ENTRIES 5
 
 typedef struct
 {
